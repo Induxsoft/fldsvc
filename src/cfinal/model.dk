@@ -1,0 +1,125 @@
+#include "dkli.dkh"
+#!
+module ""
+{
+    @table_name="cliente_final"
+
+    @list_query="SELECT cf.sys_pk,cf.codigo,cf.nombre,cf.notas,c.sys_pk id_cliente,c.nombre cliente FROM cliente_final cf
+    INNER JOIN cliente c ON cf.cliente=c.sys_pk
+    WHERE 
+    if(ifnull(@s,'')='',true,CONCAT_WS('',cf.sys_pk,cf.codigo,cf.nombre,cf.notas ) LIKE concat('%',@s,'%') )
+    AND if(IFNULL(@cliente,'')='',true,c.sys_pk=@cliente)"
+    
+    prepareView::&db,&params,&entity
+    {
+        if @@(entity,"#cliente")>0{params<"cliente">:@@(entity,"#cliente")}
+
+        using entity
+        {
+            
+            @"cliente*":dbr.rec(db,"select * from cliente where sys_pk=@cliente",params)
+        }
+    }
+    list::&db,&params
+    {
+        do dbr.apps.action.grant("ZB01")
+       ref entity=entity.list(db,params)
+
+       new data
+       {
+            @"cliente*":dbr.rec(db,"select * from cliente where sys_pk=@cliente",params)
+            @"data*":entity
+            @"itemactions*": dbr.apps.itemactions(db,"DET0AD","action","",0)
+       }
+       return data
+    }
+    read::&db,&params
+    {
+        do dbr.apps.action.grant("ZB01")
+        ref entity= entity.read(db,params)
+        
+        do prepareView(db,params,entity)
+
+       return entity
+    }
+    create::&db,&params,&data
+    {
+        @use_transaction = @false
+            do dbr.apps.action.pre("ZB02")
+        do dbr.begin(db)
+
+        ref entity= entity.create(db,params,data)
+
+            do dbr.apps.action.pos(entity)
+        do dbr.commit(db)
+            do dbr.apps.action.ext(entity)
+        
+        exception
+        {
+            if dbr.in_transaction(db){ do dbr.rollback(db) }
+            do dbr.apps.action.log()
+            do prepareView(db,params,data)
+            do rise_error(last_error_code(),last_error())
+        }
+        
+       return entity
+    }
+    update::&db,&params,&data
+    {
+        @use_transaction = @false
+            do dbr.apps.action.pre("ZB03")
+        do dbr.begin(db)
+        
+        ref entity= entity.update(db,params,data)
+
+            do dbr.apps.action.pos(entity)
+        do dbr.commit(db)
+            do dbr.apps.action.ext(entity)
+        
+        exception
+        {
+            if dbr.in_transaction(db){ do dbr.rollback(db) }
+            do dbr.apps.action.log()
+            do prepareView(db,params,data)
+            do rise_error(last_error_code(),last_error())
+        }
+        
+       return entity
+    }
+    blank::&db,&params
+    {
+        do dbr.apps.action.grant("ZB01")
+      new entity{}
+      return entity
+    }
+    delete::&db,&params
+    {
+        @use_transaction = @false
+            do dbr.apps.action.pre("ZB04")
+        do dbr.begin(db)
+        
+        ref entity= entity.delete(db,params)
+        
+            do dbr.apps.action.pos(entity)
+        do dbr.commit(db)
+            do dbr.apps.action.ext(entity)
+        
+        exception
+        {
+            if dbr.in_transaction(db){ do dbr.rollback(db) }
+            do dbr.apps.action.log()
+            do rise_error(last_error_code(),last_error())
+        }
+       
+       return entity
+    }
+
+    search.Cliente::&db,&params
+    {
+        sql="select * from cliente where 
+        if(ifnull(@search,'')='',true, concat_ws('',codigo,nombre) LIKE CONCAT('%',@search,'%') )"
+
+        return dbr.list(db,sql,params)
+    }
+
+}

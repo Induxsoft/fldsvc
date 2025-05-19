@@ -1,0 +1,15 @@
+﻿itemid,description,itemparent
+fldsvc,Cliente final,\0
+fldsvc.cfinal,Cliente final,fldsvc
+ZB01,Cliente final,fldsvc.cfinal
+ZB02,Crear cliente final,fldsvc.cfinal
+ZB03,Editar cliente final,fldsvc.cfinal
+ZB04,Eliminar cliente final,fldsvc.cfinal
+
+fldsvc.ucfinal,Ubicación de cliente final,fldsvc
+ZB10,Ubicación de cliente final,fldsvc.ucfinal
+ZB11,Crear ubicación de cliente final,fldsvc.ucfinal
+ZB12,Editar ubicación de cliente final,fldsvc.ucfinal
+ZB13,Eliminar ubicación de cliente final,fldsvc.ucfinal
+
+

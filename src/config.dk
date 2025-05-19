@@ -1,0 +1,13 @@
+#include "dkli.dkh"
+#!
+module ""
+{
+    @url_filter_clientes="/!/fldsvc/cfinal/_new/search-cliente/"
+    @URL_CLIENTE_FINAL="/!/fldsvc/cfinal/"
+    @URL_UCLIENTE_FINAL="/!/fldsvc/ucfinal/"
+    @js_ucfinal="/$/fldsvc/js/ucfinal.js"
+    @API_KEY_MAP="AIzaSyD3L389ZT5Y5i8yjHtn-zyCHmqH62qSk0Y"
+
+    @lat_def="16.75225840540828"
+    @long_def="-93.10436719101563"
+}

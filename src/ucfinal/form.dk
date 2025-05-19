@@ -1,0 +1,158 @@
+#include "dkli.dkh"
+#!
+module "form.dk"
+{
+    #include "functions.dkh"
+    #include "serialize.dkh"
+    #include "../config.dk"
+    #include "../_lib/icons.dk"
+    #include "uielements.dkl"
+    #include "dbr.dkh"
+    #include "../_lib/lib.dk"
+
+    do @context.begin(@crud_context)
+    ref _cf=@("&./cliente")
+    cliente=to.json(ifnull(@("&./cliente"),record.create()))
+
+    cliente_final=if(@("#parameters/cfinal")>0,@("#parameters/cfinal"),@('$./cliente_final'))
+
+    if trim(@('$./lat'))==""{lat=@lat_def}
+    else{lat=@('$./lat')}
+
+    if trim(@('$./long'))==""{long=@long_def}
+    else{long=@('$./long')}
+
+    #$
+    div(class="container")
+    {
+        div(id="work_area" class="container-section")
+        {
+            #!
+            if @('$error/message')!=""
+            {
+                #$ div(class="alert alert-danger"){$"#<@('$error/message')>"}
+            }
+            form(action="#<preserveQSParams('.')>" method="POST" id="form_type" enctype="multipart/form-data")
+            {
+                div(class="row container-section m-0 px-0 py-2 my-2 border-bottom sticky-top bg-white" id="main_action_bar")
+                {
+                    div(class="col-4 d-block align-items-center p-0") 
+                    { 
+                        h5(class="tex-no-break m-0"){$"#<@@(_cf,'$nombre')>"}
+                        h6(style='font-size: .7em;'){"#<@@(_cf,'$nom_cl')>"}
+                    }
+                    div(class="col-8 d-flex justify-content-end align-items-center p-0 gap-2")
+                    {
+                        a(href="#<preserveQSParams('./')>" class="btn btn-sm border-secondary induxsoft-corners btn-main-action" title="Refrescar"){$"#<@ICON_ARROW_CLOCKWISE>"}
+                        button(class="btn btn-sm border-secondary induxsoft-corners btn-main-action" id="btn_save"){$"#<@ICON_SAVE> Guardar"}
+                        a(href="#<preserveQSParams(@URL_UCLIENTE_FINAL)>" class="btn btn-sm border-secondary induxsoft-corners btn-main-action" title="Salir"){$"#<@ICON_X_LG>"}
+                    }
+                }
+                input(type="hidden" name="sys_recver" value="#<@('#./sys_recver')>")
+                input(type="hidden" name="lat"  id="lat" value="#<lat>")
+                input(type="hidden" name="`long`" id="long" value="#<long>")
+                input(type="hidden" name="cliente_final" id="cliente_final" value="#<cliente_final>")
+
+                div(class="row mb-2")
+                {
+                    div(class="col-md-8 col-sm-12")
+                    {
+                        small(class="form-label fw-bold" "for"="text"){$"Nombre de la ubicación:"}
+                        input(class="induxsoft-form-control" name="nombre" id="nombre" value="#<@('$./nombre')>" maxlength="128")
+                    }
+                    div(class="col-md-4 col-sm-12")
+                    {
+                        small(class="form-label fw-bold" "for"="text"){$"C.P:"}
+                        input(type="text" class="induxsoft-form-control" name="cp" maxlength="15" id="cp" value="#<@('$./cp')>")
+                    }
+                    div(class="col-md-12 col-sm-12")
+                    {
+                        small(class="form-label" "for"="text"){$"Dirección:"}
+                        textarea(class="induxsoft-form-control" name="direccion" id="direccion"){"#<@('$./direccion')>"}
+                    }
+
+                    div(class="col-md-12 col-sm-12")
+                    {
+                        small(class="form-label" "for"="cal_price"){$"Notas:"}
+                        textarea(class="induxsoft-form-control" name="notas" id="notas" ){"#<@('$./notas')>"}
+                    }
+                }
+
+                div(id="map" style="width: 100%; height: 400px;"){""}
+
+                script(src="https://maps.googleapis.com/maps/api/js?key=#<@API_KEY_MAP>&callback=initMap" async="" defer=""){""}
+ 
+                script
+                {
+                    $'
+                    var map;
+                    var marker;
+                    function initMap() 
+                    {
+                        var ubicacion={ lat: #<lat>, lng: #<long>  }
+                        map = new google.maps.Map(document.getElementById("map"), 
+                        {
+                            center: ubicacion, 
+                            zoom: 12,
+                        });
+
+                        marker = new google.maps.Marker({
+                            map: map,
+                            draggable: true, // Permite mover el marcador
+                            position:ubicacion,
+                            title:"Ubicación seleccionada"
+                        });
+
+                        // Event listener para clicks en el mapa
+                        map.addListener("click", (event) => 
+                        {
+                            CaptureEvent(event);
+                        });
+
+                        marker.addListener("dragend", function(event) 
+                        {
+                            CaptureEvent(event);
+                        });
+                    }
+                    
+                    function CaptureEvent(event)
+                    {
+                        const lat = event.latLng.lat();
+                        const lng = event.latLng.lng();
+                        
+                        SetLatAndLong(lat,lng);
+                    }
+                    function buscarDireccion() 
+                    {
+                        var direccion = document.getElementById("direccion").value;
+                        var geocoder = new google.maps.Geocoder();
+                        //console.log(direccion);
+                        geocoder.geocode({ "address": direccion }, function(results, status) 
+                        {
+                            if (status === "OK") 
+                            {
+                                var location=results[0].geometry.location;
+                                map.setCenter(location);
+                                marker.setPosition(location);
+
+                                SetLatAndLong(location.lat(),location.lng());
+                            }
+                            else{console.log("Dirección no encontrada: "+status);}
+                        });
+                    }
+
+                    function SetLatAndLong(lat,lng)
+                    {
+                        if(ucfinal.lat)ucfinal.lat.value=lat;
+                        if(ucfinal.long)ucfinal.long.value=lng;
+
+                        console.log(`Latitud: ${lat}, Longitud: ${lng}`);
+                    }
+                    '
+                } 
+                script(src="#<@js_ucfinal>"){""} 
+            }
+        }
+
+    }
+}

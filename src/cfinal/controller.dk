@@ -1,0 +1,21 @@
+#include "dkli.dkh"
+#!
+module ""
+{
+    point @delete to delete
+    point @blank to blank
+    point @update to update
+    point @create to create
+    point @read to read
+    point @list to list
+
+    switch @@(params,"$_view")
+    {
+        case "search-cliente"
+        {
+            point @read to search.Cliente
+            point @blank to search.Cliente
+            break
+        }
+    }
+}

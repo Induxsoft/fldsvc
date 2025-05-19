@@ -1,0 +1,7 @@
+"id","title","shorttitle","icon16x16","href","_blank","appid","itemtype","req_context_item_id","act_type"
+ZB01,"Cliente final","","","/!/fldsvc/cfinal/","0","fldsvc.cfinal","DET0AC","0","action","Listar"
+ZB02,Crear cliente final,Crear,"",/!/fldsvc/cfinal/_new/,0,fldsvc.cfinal,DET0AC,0,action
+ZB03,Editar cliente final,Editar,"",/!/fldsvc/cfinal/@_src_context_item_id/,0,fldsvc.cfinal,DET0AC,1,action
+ZB04,Eliminar cliente final,Eliminar,"","javascript:InduxsoftCrudlModel.Delete(`@_src_context_item_id`);",0,fldsvc.cfinal,DET0AC,1,action
+
+ZB10,"Ubicación de cliente final","Ubicaciones","","/!/fldsvc/ucfinal/?cfinal=@_src_context_item_id","0","fldsvc.ucfinal","DET0AD","1","action","Listar"

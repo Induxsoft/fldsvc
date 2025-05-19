@@ -1,0 +1,143 @@
+#include "dkli.dkh"
+#!
+module ""
+{
+    @table_name="ubi_cliente_final"
+
+    @list_query="SELECT 
+        u.sys_pk,u.nombre,u.direccion,u.cp,u.lat,u.`long`,
+        cf.codigo cod_cf,cf.nombre nom_cf,cf.notas not_cf,
+        c.codigo cod_cl,c.nombre nom_cl
+        FROM ubi_cliente_final u 
+        INNER JOIN cliente_final cf ON u.cliente_final=cf.sys_pk
+        INNER JOIN cliente c ON cf.cliente=c.sys_pk
+    WHERE 
+    u.cliente_final=@cfinal
+    AND if(ifnull(@s,'')='',true,CONCAT_WS('',u.sys_pk,u.nombre,u.direccion,u.cp,u.lat,u.`long`,cf.codigo,cf.nombre,cf.notas,c.codigo,c.nombre ) LIKE concat('%',@s,'%') )"
+    
+    list::&db,&params
+    {
+        do dbr.apps.action.grant("ZB10")
+       ref entity=entity.list(db,params)
+
+       new data
+       {
+            @"cliente*":dbr.rec(db,"select cf.*,c.codigo cod_cl,c.nombre nom_cl from cliente_final  cf
+                INNER JOIN cliente c ON cf.cliente=c.sys_pk
+                where cf.sys_pk=@cfinal",params)
+            @"data*":entity
+       }
+       return data
+    }
+    read::&db,&params
+    {
+        do dbr.apps.action.grant("ZB10")
+        ref entity= entity.read(db,params)
+        using entity
+        {
+            @"cliente*":dbr.rec(db,"select cf.*,c.codigo cod_cl,c.nombre nom_cl from cliente_final  cf
+                INNER JOIN cliente c ON cf.cliente=c.sys_pk
+                where cf.sys_pk=@cfinal",params)
+        }
+       return entity
+    }
+    CutPoint::v
+    {
+        if not(contains(v,".")) || trim(v)==""{return v}
+
+        ref sl=split(v,".")
+
+        ap=list.str(sl,0)
+        dp=list.str(sl,1)
+
+        return cut(ap,8)+"."+cut(dp,6)
+    }
+    create::&db,&params,&data
+    {
+        @use_transaction = @false
+            do dbr.apps.action.pre("ZB11")
+        do dbr.begin(db)
+
+        ref entity= entity.create(db,params,data)
+
+            do dbr.apps.action.pos(entity)
+        do dbr.commit(db)
+            do dbr.apps.action.ext(entity)
+        
+        @url_redir=preserveQSParams(@URL_UCLIENTE_FINAL)
+        
+        exception
+        {
+            data<"long">:@@(data,"$`long`")
+            if dbr.in_transaction(db){ do dbr.rollback(db) }
+            do dbr.apps.action.log()
+            do rise_error(last_error_code(),last_error())
+        }
+        
+       return entity
+    }
+    update::&db,&params,&data
+    {
+        @use_transaction = @false
+            do dbr.apps.action.pre("ZB12")
+        do dbr.begin(db)
+        
+        ref entity= entity.update(db,params,data)
+
+            do dbr.apps.action.pos(entity)
+        do dbr.commit(db)
+            do dbr.apps.action.ext(entity)
+        
+        @url_redir=preserveQSParams(@URL_UCLIENTE_FINAL)
+
+        exception
+        {
+            if dbr.in_transaction(db){ do dbr.rollback(db) }
+            do dbr.apps.action.log()
+            do rise_error(last_error_code(),last_error())
+        }
+        
+       return entity
+    }
+    blank::&db,&params
+    {
+        do dbr.apps.action.grant("ZB10")
+        new entity{}
+        using entity
+        {
+            @"cliente*":dbr.rec(db,"select cf.*,c.codigo cod_cl,c.nombre nom_cl from cliente_final  cf
+                INNER JOIN cliente c ON cf.cliente=c.sys_pk
+                where cf.sys_pk=@cfinal",params)
+        }
+        return entity
+    }
+    delete::&db,&params
+    {
+        @use_transaction = @false
+            do dbr.apps.action.pre("ZB13")
+        do dbr.begin(db)
+        
+        ref entity= entity.delete(db,params)
+        
+            do dbr.apps.action.pos(entity)
+        do dbr.commit(db)
+            do dbr.apps.action.ext(entity)
+        
+        exception
+        {
+            if dbr.in_transaction(db){ do dbr.rollback(db) }
+            do dbr.apps.action.log()
+            do rise_error(last_error_code(),last_error())
+        }
+       
+       return entity
+    }
+
+    point @delete to delete
+    point @blank to blank
+    point @update to update
+    point @create to create
+    point @read to read
+    point @list to list
+
+}

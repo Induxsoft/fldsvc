@@ -1,0 +1,34 @@
+#include "ddm.dkh"
+model ""
+{
+    #include "induxsoft.abstracts.ddm"
+
+    //* ======================================== [ DEPENDENCIAS (FK) ]
+    entity "cliente_final" : "TableModel"
+    {
+        @"cliente"ref:"cliente" required
+        @"codigo" string(15) unique required
+        @"nombre" string(128) required
+        @"notas" memo
+    }
+
+    entity "ubi_cliente_final" : "TableModel"
+    {
+        @"cliente_final" ref:"cliente_final" required
+        @"nombre" string(128) required
+        @"direccion" memo
+        @"cp" string(15) //Código postal
+        @"lat" string(100) // Coordenadas
+        @"long" string(100) // Coordenadas
+        @"notas" memo
+    }
+
+    entity "cliente" : "TableModel"
+    {
+        // @"codcuenta" string(50) unique
+        // @"codigo" string(35) unique required
+        // @"nombre" string(150) unique required
+        // @"idivisa" ref:"divisa" required
+        // @"tipo" ref:"tipocliente" required
+    }
+}

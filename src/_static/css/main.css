@@ -1,0 +1,32 @@
+.no-blur, .no-shadow { outline: none !important; box-shadow: none !important; }
+.btn.btn-xs { padding: .20rem .4rem; font-size: .725rem; border-radius: .1rem; }
+
+.opacity-100 { opacity: 100%; }
+.opacity-75 { opacity: 75%; }
+.opacity-50 { opacity: 50%; }
+.opacity-25 { opacity: 25%; }
+.opacity-0 { opacity: 0%; }
+
+.disabled-all * a,
+.disabled-all * input,
+.disabled-all * select,
+.disabled-all * textarea,
+.disabled-all * button:not([role="tab"]),
+.disabled-all * input-key,
+.disabled-all * edit-table:not([readonly])
+{
+    pointer-events: none;
+    user-select: none;
+    background-color: #e9ecef;
+    opacity: 1;
+}
+
+select[readonly],
+textarea[readonly]
+{
+    pointer-events: none;
+    background-color: #e9ecef;
+    opacity: 1;
+}
+
+input[type="number"] { text-align: end; }

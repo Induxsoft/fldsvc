@@ -1,0 +1,15 @@
+[
+    {
+        "pattern": "/_program/",
+        "routes": [
+            {
+                "route": "/cfinal/",
+                "entity_type": "cfinal"
+            },
+            {
+                "route": "/ucfinal/",
+                "entity_type": "ucfinal"
+            }
+        ]
+    }
+]

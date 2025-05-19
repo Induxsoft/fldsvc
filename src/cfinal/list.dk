@@ -1,0 +1,138 @@
+#include "dkli.dkh"
+#!
+module "list.dk"
+{
+    #include "functions.dkh"
+    #include "serialize.dkh"
+    #include "uielements.v12.dkl"
+    #include "dbr.apps.dkl"
+    #include "dbr.dkh"
+    #include "../config.dk"
+
+    do @context.begin(@crud_context)
+    ref data = @('&./data')
+
+    new table_definition
+    {
+        @"datatable*": data
+        @"table_footer": "Mostrando las primeras # filas"
+        member @"columns"
+        {
+            member @"codigo" { @"caption":"Código" }
+            member @"nombre" { @"caption":"Cliente final" }
+            member @"cliente" { @"caption":"Cliente" }
+            member @"_actions" 
+            { 
+                @"caption":"Acciones" 
+                @"template":ftext('
+                    <div style="display:flex;gap:8px;justify-content:center;width:100%;" class="no-print">
+                        <a href="#<@list_addon>${DataRow.sys_pk}/" style="cursor:pointer; text-decoration: none; padding: 0px 8px; background-color: #F5F5F5; color: #000;">Editar</a>
+                        <button onclick="InduxsoftCrudlModel.Delete(${DataRow.sys_pk})" style="cursor:pointer; border: none; outline: none; padding: 0px 8px; background-color: #F5F5F5; color: #000;">Eliminar</button>
+                    </div>')
+                @"no-print":@true
+            }
+        }
+    }
+
+    butons::
+    {
+        #$
+        a(href="./_new/" class="btn btn-sm border-secondary induxsoft-corners btn-main-action" ){$"#<@ICON_SAVE> Agregar"}
+        #!
+    }
+
+    point butons to butons
+    new nav_config
+    {
+        @"title": "Clientes finales"
+        @"buttons*": butons
+        @"urlexit": "/"
+        @"main": "ZB10"
+        @"actions*": ifnull(@("&./itemactions"),list.create())
+        @"jscurrentcontext": "getCurrentContext"
+    }
+
+    cliente=to.json(ifnull(@("&./cliente"),record.create()))
+
+    #$ div(class="container-fluid p-0 v12-list-view" id="view")
+    {
+        section(id="top_area")
+        {
+            #! 
+            do uie.printV12FormBar(nav_config)
+            #$
+            div(class="ps-2 pe-2")
+            {
+                form(action="./" method="GET" id="form_search" class="no-print my-1 d-flex py-1")
+                {
+                    div(class="row w-100")
+                    {
+                        div(class="col-md-6 col-sm-12")
+                        {
+                            div(class="mt-2")
+                            {
+                                "filter-text"(
+                                    "id"="ft_search"
+                                    "text-field"="s"
+                                    "placeholder"="Buscar.."
+                                    "form"="#form_search"
+                                    "value"="#<@@(@@(@crud_context,'&http/request/get'),'$s')>"
+                                    "auto-submit"="true"
+                                    "class"="w-100"
+                                ){$""}
+                            }
+                        }
+                        div(class="col-md-6 col-sm-12")
+                        {
+                            div(class="mt-2")
+                            {
+                                $'
+                                <input-key 
+                                    id="cliente"
+                                    name="cliente"
+                                    data-key="sys_pk"
+                                    data-search="codigo"
+                                    data-text="nombre"
+                                    data-source="#<@url_filter_clientes>?search=@search"
+                                    box-title-text="Seleccione un cliente"
+                                    box-placeholder-text="Buscar datos..."
+                                    box-nodata-text="No se encontraron datos"
+                                    data-value=\'#<cliente>\'
+                                    required="true"
+                                    columns="codigo,nombre"
+                                    colcaptions="NIC,Nombre"
+                                    control-styles="" required="true">
+                                </input-key>
+                                '
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+
+        #$ div(id="work_area" class="container-section mt-1 p-2 pt-0")
+        {
+            #! do uie.dbeditable(table_definition, "tbl_cfinal")
+        }
+        #$
+        script(type="text/javascript")
+		{$'
+			function getCurrentContext()
+			{
+				const table = document.getElementById("tbl_cfinal");
+				const id = (table?.DataArray[table.CurrentRowIndex()]?.sys_pk ?? "");
+    			return { item_id:id, context: {} }
+			}
+            document.addEventListener("DOMContentLoaded",(e)=>
+            {
+                var cliente=document.getElementById("cliente");
+                if(cliente)cliente.addEventListener("change",()=>
+                {
+                    setTimeout(()=>{document.getElementById("form_search").submit();},300);
+                });
+            });
+		'}
+    }
+}
