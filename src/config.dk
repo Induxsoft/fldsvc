@@ -6,7 +6,7 @@ module ""
     @URL_CLIENTE_FINAL="/!/fldsvc/cfinal/"
     @URL_UCLIENTE_FINAL="/!/fldsvc/ucfinal/"
     @js_ucfinal="/$/fldsvc/js/ucfinal.js"
-    @API_KEY_MAP="AIzaSyD3L389ZT5Y5i8yjHtn-zyCHmqH62qSk0Y"
+    @API_KEY_MAP=""
 
     @lat_def="16.75225840540828"
     @long_def="-93.10436719101563"
